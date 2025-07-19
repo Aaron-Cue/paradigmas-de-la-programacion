@@ -1,0 +1,89 @@
+%! entre(+X,+Y,-Z)
+% sea verdadero cuando el número entero Z esté ...
+entre(X, Y, X) :-
+	X =< Y.
+entre(X, Y, Z) :-
+	X =< Y,
+	Xp1 is X + 1,
+	entre(Xp1, Y, Z).
+
+
+%! long(+L, -N).
+long([], 0).
+long([_H|T], N) :-
+	long(T, Nm1),
+	N is Nm1 + 1.
+
+% sacar(X, XS, YS).
+sacar(_, [], []).
+sacar(X, [X|XS], YS) :-
+	sacar(X, XS, YS).
+sacar(X, [A|XS], [A|RES]) :-
+	X \= A,
+	sacar(X, XS, RES).
+
+% prefijo(_, []).
+% prefijo([H|L], [H|T]) :-
+% 	prefijo(L, T).
+
+prefijo(L, P) :-
+	append(P, _, L).
+
+sufijo(L, P) :-
+	append(_, P, L).
+
+sublista(_, []).
+sublista(L, SL) :-
+	append(_, SLYAlgoMas, L),
+	append(SL, _, SLYAlgoMas),
+	SL \= [].
+
+insertar(X, L, LX) :-
+	append(A, B, L),
+	append(A, [X|B], LX).
+
+permutacion([], []).
+permutacion([H|T], P) :-
+	permutacion(T, Q),
+	 insertar(H, Q, P).
+
+
+
+
+
+%% Programación Lógica - Parte 1 - Turno noche
+
+%! entre(+X, +Y, -Z)
+entre(X, Y, X) :- X =< Y.
+entre(X, Y, Z) :- X < Y, N is X+1, entre(N, Y, Z). 
+
+%! long(+L, ?N)
+long([], 0).
+long([_|T], N) :- long(T, M), N is 1 + M.
+
+%! sacar(+X, +XS, -YS)
+sacar(_, [], []).
+sacar(X, [X|T], YS) :- sacar(X, T, YS).
+sacar(X, [N|T], [N|YS]) :- X \= N, sacar(X, T, YS).
+
+%! sinConsecRep(+XS, -YS)
+sinConsecRep([], []).
+sinConsecRep([X], [X]).
+sinConsecRep([X, X|XS], YS) :- sinConsecRep([X|XS], YS).
+sinConsecRep([X, Y|XS], [X|YS]) :- X \= Y, sinConsecRep([Y|XS], YS).
+
+%! prefijo(+L, ?P)
+prefijo(L, P) :- append(P, _, L).
+
+sufijo(L, S) :- append(_, S, L).
+
+%! sublista(+L, ?SL)
+sublista(_, []).
+sublista(L, SL) :- prefijo(L, P), sufijo(P, SL), SL \= [].
+
+%! insertar(?X, +L, ?LX)
+insertar(X, L, LX) :- append(P,S, L), append(P, [X|S], LX).
+
+%! permutacion(+L, ?PS)
+permutacion([], []).
+permutacion([L|LS], PS) :- permutacion(LS, P), insertar(L, P, PS).
