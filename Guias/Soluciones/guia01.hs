@@ -101,5 +101,40 @@ mejorSegun f = foldr1 (\x acc -> if f x acc then x else acc)
 sumasParciales :: Num a => [a] -> [a]
 sumasParciales lista = foldl (\acc x -> acc ++ [x + sum (take (length acc) lista)]) [] lista
 
+-- 3.d
+-- suma alternada de los elems de la lista. osea: el primer elemento, menos el segundo, más el tercero, menos el cuarto, etc. Usar foldr.
+sumaAlt :: Num a => [a] -> a
+                        -- acc = (sumaAlt, Sumar?)
+sumaAlt xs = fst (foldr (\x (acc, signoPositivo) -> if signoPositivo then (x + acc, False) else (acc - x, True)) (0, True) xs)
 
-res = sumasParciales [1, 4, -1, 0, 5] -- [1, 5, 4, 4, 9]
+-- usando where
+sumaAlt2 :: Num a => [a] -> a
+sumaAlt2 xs = fst (foldr f (0, True) xs)
+            where
+              f x (acc, signoPositivo) | signoPositivo = (x + acc, False)
+                                       | otherwise = (acc - x, True)
+
+-- 3.e
+sumaAltInversa :: Num a => [a] -> a
+sumaAltInversa xs = fst (foldr f (0, False) xs)
+                where
+                  f x (acc, signoPositivo) | signoPositivo = (x + acc, False)
+                                           | otherwise = (acc - x, True)
+
+-- 4.a
+permutaciones :: [a] -> [[a]]
+permutaciones [] = [[]]
+permutaciones xs =
+  concatMap
+    (\(i, x) -> map (x :) (permutaciones (take i xs ++ drop (i + 1) xs)))
+    (zip [0 ..] xs)
+
+-- 4.b
+partes :: [a] -> [[a]]
+partes [] = [[]]
+partes (x : xs) = partes xs ++ map (x :) (partes xs)
+
+-- 4.c 
+prefijos :: [a] -> [[a]]
+prefijos [] = [[]]
+prefijos xs = prefijos (init xs) ++ [xs]
