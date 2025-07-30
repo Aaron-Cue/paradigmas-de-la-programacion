@@ -121,6 +121,9 @@ sumaAltInversa xs = fst (foldr f (0, False) xs)
                   f x (acc, signoPositivo) | signoPositivo = (x + acc, False)
                                            | otherwise = (acc - x, True)
 
+
+-- EJERCICIO 4
+
 -- 4.a
 permutaciones :: [a] -> [[a]]
 permutaciones [] = [[]]
@@ -138,3 +141,43 @@ partes (x : xs) = partes xs ++ map (x :) (partes xs)
 prefijos :: [a] -> [[a]]
 prefijos [] = [[]]
 prefijos xs = prefijos (init xs) ++ [xs]
+
+
+-- EJERCICIO 5
+-- 5.a
+elementosEnPosicionesPares :: [a] -> [a]
+elementosEnPosicionesPares [] = []
+elementosEnPosicionesPares (x : xs) =
+  if null xs
+    then [x]
+    else x : elementosEnPosicionesPares (tail xs)
+-- no usa recursion estructural ya que tanto las variables elementosEnPosicionesPares y xs son usadas en expresiones distintas a elementosEnPosicionesPares xs
+
+-- 5.b
+entrelazar :: [a] -> [a] -> [a]
+entrelazar [] [] = []
+entrelazar (x : xs) ys = if null ys
+                          then x : entrelazar xs []
+                          else x : head ys : entrelazar xs (tail ys)
+-- si usa recursion estructural
+
+entrelazarFoldr :: [a] -> [a] -> [a]
+entrelazarFoldr [] [] = []
+entrelazarFoldr xs ys = foldr (\x rec ys' -> case ys' of
+                                    [] -> x : rec []
+                                    (y : ys) -> x : y : rec ys)
+                                    (const []) xs ys
+
+-- EJERCICIO 6
+-- 6.a
+eliminarPrimeraAparicion :: Eq a => a -> [a] -> [a]
+eliminarPrimeraAparicion _ [] = []
+eliminarPrimeraAparicion e (x : xs) = if x == e then eliminarPrimeraAparicion e xs else x : eliminarPrimeraAparicion e xs
+
+-- 6.b
+-- foldr no es util para implementar eliminarPrimeraAparicion porque pide eliminar la primera aparicion y como foldr recorre desde la derecha encontrara las ultimas apariciones (de existir)
+
+-- 6.c
+insertarOrdenado :: Ord a => a -> [a] -> [a]
+insertarOrdenado e [] = [e] 
+insertarOrdenado e (x : xs) = if e < x then e : x : xs else x : insertarOrdenado e xs
