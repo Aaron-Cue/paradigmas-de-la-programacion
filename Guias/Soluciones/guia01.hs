@@ -181,3 +181,43 @@ eliminarPrimeraAparicion e (x : xs) = if x == e then eliminarPrimeraAparicion e 
 insertarOrdenado :: Ord a => a -> [a] -> [a]
 insertarOrdenado e [] = [e] 
 insertarOrdenado e (x : xs) = if e < x then e : x : xs else x : insertarOrdenado e xs
+
+
+-- EJERCICIO 7
+
+-- 7.a toma una f curry de 2 args, una lista de pares de valores, devuelve la lista de aplicaciones de la funciona  cada par 
+mapPares :: (a -> b -> c) -> [(a, b)] -> [c]
+mapPares _ [] = []
+mapPares f ((x, y):xs) = f x y : mapPares f xs
+
+-- 7.b
+armarPares :: [a] -> [b] -> [(a, b)]
+armarPares [] _ = []
+armarPares _ [] = []
+armarPares (x:xs) (y:ys) = (x, y) : armarPares xs ys
+
+-- 7.c
+mapDoble :: (a -> b -> c) -> [a] -> [b] -> [c]
+mapDoble _ [] [] = []
+mapDoble f (x:xs) (y:ys) = f x y : mapDoble f xs ys
+
+
+-- EJERCICIO 8
+
+-- 8.a
+sumaMatriz :: [[Int]] -> [[Int]] -> [[Int]]
+sumaMatriz [] [] = []
+sumaMatriz (x:xs) (y:ys) = f x y : sumaMatriz xs ys
+                          where
+                            f [] [] = []
+                            f (x':xs') (y':ys') = (x' + y') : f xs' ys'
+
+-- con zipWith 
+sumaMatriz' :: [[Int]] -> [[Int]] -> [[Int]]
+sumaMatriz' xs ys = zipWith (zipWith (+)) xs ys
+
+-- 8.b
+trasponer :: [[Int]] -> [[Int]]
+trasponer [] = []
+trasponer ([] : _) = []
+trasponer xs = map head xs : trasponer (map tail xs)
