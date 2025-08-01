@@ -179,7 +179,7 @@ eliminarPrimeraAparicion e (x : xs) = if x == e then eliminarPrimeraAparicion e 
 
 -- 6.c
 insertarOrdenado :: Ord a => a -> [a] -> [a]
-insertarOrdenado e [] = [e] 
+insertarOrdenado e [] = [e]
 insertarOrdenado e (x : xs) = if e < x then e : x : xs else x : insertarOrdenado e xs
 
 
@@ -221,3 +221,94 @@ trasponer :: [[Int]] -> [[Int]]
 trasponer [] = []
 trasponer ([] : _) = []
 trasponer xs = map head xs : trasponer (map tail xs)
+
+
+-- EJERCICIO 9
+
+-- 9.a
+foldNat :: a -> (a -> a) -> Int -> a
+foldNat z _ 0 = z
+foldNat z f n = f (foldNat z f (n - 1))
+
+-- 9.b
+potencia :: Int -> Int -> Int
+potencia base n = foldNat 1 (* base) n
+
+-- EJERCICIO 10
+--10.a
+genLista :: a -> (a -> a) -> Int -> [a]
+-- genLista _ _ 0 = []
+-- genLista e f n = e : genLista (f e) f (n-1)
+genLista e f n = foldNat [e] (\xs -> xs ++ [f (last xs)]) (n - 1)
+
+desdeHasta :: Int -> Int -> [Int]
+-- desdeHasta d h = [d..h]
+desdeHasta d h = genLista d (+1) (h - d)
+
+-- EJERCICIO 11
+-- 11.a
+data Polinomio a = X
+                  | Cte a
+                  | Suma (Polinomio a) (Polinomio a)
+                  | Prod (Polinomio a) (Polinomio a)
+
+foldPol :: b -> (a -> b) -> (b -> b -> b) -> (b -> b -> b) -> Polinomio a -> b
+foldPol x cte suma prod X = x
+foldPol x cte suma prod (Cte a) = cte a
+foldPol x cte suma prod (Suma p q) =
+  suma
+    (foldPol x cte suma prod p)
+    (foldPol x cte suma prod q)
+foldPol x cte suma prod (Prod p q) =
+  prod
+    (foldPol x cte suma prod p)
+    (foldPol x cte suma prod q)
+
+evaluar :: Num a => a -> Polinomio a -> a
+evaluar xVal pol = foldPol xVal id (+) (*) pol
+
+-- EJERCICIO 12
+data AB a = Nil | Bin (AB a) a (AB a)
+-- 12.a
+-- estructural
+foldAB :: b -> (b -> a -> b -> b) -> AB a -> b
+foldAB z f Nil = z
+foldAB z f (Bin izq val der) = f (foldAB z f izq) val (foldAB z f der)
+
+-- primitiva
+recAB :: b -> (AB a -> b -> a -> AB a -> b -> b) -> AB a -> b
+recAB z f Nil = z
+recAB z f (Bin izq x der) = f izq (recAB z f izq) x der (recAB z f der)
+
+-- 12.b
+esNil :: AB a -> Bool
+esNil arb = foldAB True (\_ _ _ -> False) arb
+
+altura :: AB a -> Int
+altura arb = foldAB 0 (\altIzq valRaiz altDer -> 1 + max altIzq altDer) arb
+
+cantNodos :: AB a -> Int
+cantNodos arb = foldAB 0 (\cantIzq valRaiz cantDer -> 1 + cantIzq + cantDer) arb
+
+-- 12.c
+mejorSegunAB :: a -> (a -> a -> Bool) -> AB a -> a
+mejorSegunAB cb f arb = foldAB cb (\mejIzq valRaiz mejDer -> case (f valRaiz mejIzq, f valRaiz mejDer, f mejIzq mejDer) of
+  (True, True, _)    -> valRaiz
+  (_, _, True)       -> mejIzq
+  _                  -> mejDer) arb
+
+-- EJERCICIO 15
+-- 15.a
+data RoseTree a = Rose a [RoseTree a]
+-- 15.b
+foldRose :: (a -> [b] -> b) -> RoseTree a -> b
+foldRose f (Rose val hijos) = f val (map (foldRose f) hijos)
+-- 15.c
+hojas :: RoseTree a -> [a]
+hojas = foldRose (\val hijos -> if null hijos then [val] else concat hijos)
+
+distancias :: RoseTree a -> [Int]
+distancias = foldRose (\_ hijos -> if null hijos then [0] else map (+1) (concat hijos))
+
+alturaRt :: RoseTree a -> Int
+alturaRt = foldRose (\_ hijos -> if null hijos then 1 else 1 + maximum hijos)
