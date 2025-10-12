@@ -110,7 +110,7 @@ cantDivisoresPrimos n = length [x | x <- [1 .. n], esDivisible n x && esPrimo x]
 -- EJERCICIO 3
 
 {-
-data Maybe a = Nothing | Just a -> el tipo Maybe a (con a un tipo cualquiera) devuelve Nothing (indica ausencia de valor) o Just a (indica presencia de un valor de tipo a)
+data Maybe a = Nothing | Just a -> el tipo Maybe a (con a un tipo cualquiera) devuelve Nothing indicando ausencia de valor o Just a indicando presencia de un valor de tipo a
 
 data Either a b = Left a | Right b -> el tipo Either a b (con a y b dos tipos cualquiera) devuelve Left a (en caso de error) o Right b (en caso de exito)
 -}
@@ -121,10 +121,12 @@ inverso 0 = Nothing
 inverso x = Just (1 / x)
 
 -- 3.b
+-- pattern matching a los constructores del tipo
 aEntero1 :: Either Int Bool -> Int
-aEntero1 (Left n) = n
-aEntero1 (Right bool) = if bool then 1 else 0
+aEntero1 (Left n) = n 
+aEntero1 (Right b) = if b then 1 else 0 
 
+-- funcion either, la cual toma 2 f, aplica la primera si recibe un Left a y la segunda si recibre un Right b
 aEntero2 :: Either Int Bool -> Int
 aEntero2 =
   either
@@ -156,7 +158,7 @@ promedio xs = sum xs / fromIntegral (length xs)
 
 difPromedio :: [Float] -> [Float]
 difPromedio [] = []
-difPromedio nums = map (\num -> num - promedio nums) nums
+difPromedio nums = map (\n -> n - promedio nums) nums
 
 -- 4.c
 todosIguales1 :: [Int] -> Bool
@@ -164,6 +166,9 @@ todosIguales1 (x : xs) = all (== x) (x : xs)
 
 todosIguales2 :: [Int] -> Bool
 todosIguales2 (x : xs) = replicate (length xs) x == xs
+
+todosIguales3 :: [Int] -> Bool
+todosIguales3 xs = foldl (\acc e -> acc && e == head xs) True xs
 
 -- EJERCICIO 5
 data AB a = Nil | Bin (AB a) a (AB a)

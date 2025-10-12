@@ -3,6 +3,7 @@
 {-# HLINT ignore "Use sum" #-}
 {-# HLINT ignore "Avoid lambda" #-}
 {-# HLINT ignore "Use map" #-}
+{-# HLINT ignore "Use foldr" #-}
 import System.Win32 (xBUTTON1)
 {-# HLINT ignore "Redundant lambda" #-}
 
@@ -45,6 +46,7 @@ dosVeces = \f -> f.f
 -- flip :: (a -> b -> c) -> b -> a -> c
 flipAll :: [a -> b -> c] -> [b -> a -> c]
 flipAll = map flip
+
 
 flipRaro :: b -> (a -> b -> c) -> a -> c
 flipRaro = flip flip
@@ -132,6 +134,9 @@ permutaciones xs =
     (\(i, x) -> map (x :) (permutaciones (take i xs ++ drop (i + 1) xs)))
     (zip [0 ..] xs)
 
+-- >>> permutaciones [1,2,3]
+-- [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+
 -- 4.b
 partes :: [a] -> [[a]]
 partes [] = [[]]
@@ -167,12 +172,54 @@ entrelazarFoldr xs ys = foldr (\x rec ys' -> case ys' of
                                     [] -> x : rec []
                                     (y : ys) -> x : y : rec ys)
                                     (const []) xs ys
+-- entrelazarFoldr [1,2,3] [10,20,30]  ->  [1,34,2,55,3,66]
+-- lo que paso:
+-- f 1 (f 2 ( (f 3 (const []))) ys
+-- primero hace f 3 (const [])   que evalua haciendo la doble beta red a: 
+
+-- (\ys' -> case ys' of
+--                 []       -> 3 : const [] []
+--                 (y:ys)   -> 3 : y : const [] ys)
+
+-- luego hace:
+-- f 2 (\ys' -> case ys' of
+--                    []     -> [3]
+--                    (y:ys) -> [3, y])
+
+-- osea: 
+-- (\x rec ys' -> case ys' of
+--                   []     -> x : rec []
+--                   (y:ys) -> x : y : rec ys)
+-- 2 (\ys' -> case ys' of
+--              []     -> [3]
+--              (y:ys) -> [3, y])
+
+-- haciendo la beta red queda:
+-- (\ys' -> case ys' of
+--                 []     -> 2 : rec []
+--                 (y:ys) -> 2 : y : rec ys)    rec = (\ys' -> case ys' of
+--                                                                  []     -> [3]
+--                                                                  (y:ys) -> [3, y])
+
+-- hasta este punto quedaria: evalua ys', entra en el caso (y:ys) => 2 : 10 : rec [20,30]  y asi...
 
 -- EJERCICIO 6
--- 6.a
-eliminarPrimeraAparicion :: Eq a => a -> [a] -> [a]
-eliminarPrimeraAparicion _ [] = []
-eliminarPrimeraAparicion e (x : xs) = if x == e then eliminarPrimeraAparicion e xs else x : eliminarPrimeraAparicion e xs
+
+foldr' :: (a -> b -> b) -> b -> [a] -> b
+foldr' f z [] = z
+foldr' f z (x : xs) = f x (foldr' f z xs)
+foldl' :: (b -> a -> b) -> b -> [a] -> b
+foldl' f z [] = z
+foldl' f z (x : xs) = foldl' f (f z x) xs
+recr :: (a -> [a] -> b -> b) -> b -> [a] -> b
+recr _ z [] = z
+recr f z (x : xs) = f x xs (recr f z xs)
+eliminarPrimeraAparicion e xs = fst (recr f ([], False) xs)
+                            where
+                              f x xs (rec, elimino)
+                                | not elimino && x /= e = (x : rec, elimino)
+                                | not elimino && x == e = (rec, True)
+                                | otherwise = (x : rec, elimino)
 
 -- 6.b
 -- foldr no es util para implementar eliminarPrimeraAparicion porque pide eliminar la primera aparicion y como foldr recorre desde la derecha encontrara las ultimas apariciones (de existir)
@@ -312,3 +359,19 @@ distancias = foldRose (\_ hijos -> if null hijos then [0] else map (+1) (concat 
 
 alturaRt :: RoseTree a -> Int
 alturaRt = foldRose (\_ hijos -> if null hijos then 1 else 1 + maximum hijos)
+
+type Tono = Integer
+data Melodia = Silencio | Nota Tono | Secuencia Melodia Melodia | Paralelo [Melodia]
+
+foldMelo :: b -> (Tono -> b) -> (b -> b -> b) -> ([b] -> b) -> Melodia -> b
+foldMelo fSil fNota fSeq fParal melo = case melo of
+      Silencio -> fSil
+      Nota t -> fNota t
+      Secuencia m1 m2 -> fSeq (r m1) (r m2)
+        where r = foldMelo fSil fNota fSeq fParal
+
+
+      Paralelo l -> fParal (map r l)
+
+        where r = foldMelo fSil fNota fSeq fParal
+
